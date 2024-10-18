@@ -17,6 +17,9 @@ from homeassistant.helpers.aiohttp_client import (
     async_create_clientsession,
     async_get_clientsession,
 )
+from homeassistant.util.ssl import (
+    create_no_verify_ssl_context,
+)
 
 from .const import (
     CONF_EMPTY,
@@ -336,7 +339,7 @@ class EVNAPI:
             "ngayCuoi": to_date,
         }
 
-        ssl_context = ssl.create_default_context()
+        ssl_context = create_no_verify_ssl_context()
         ssl_context.set_ciphers("ALL:@SECLEVEL=1")
 
         resp = await self._session.post(
