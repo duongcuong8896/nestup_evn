@@ -9,6 +9,7 @@ import os
 import ssl
 from typing import Any
 import uuid
+import asyncio
 
 from dateutil import parser
 
@@ -1018,24 +1019,26 @@ def formatted_result(raw_data: dict) -> dict:
 
     return res
 
+def get_evn_branch(evn_customer_id):
+     evn_branch = "Unknown"
+     file_path = os.path.join(os.path.dirname(__file__), "evn_branches.json")
+     with open(file_path) as f:
+       evn_branches_list = json.load(f)
 
-def get_evn_info(evn_customer_id: str):
+       for evn_id in evn_branches_list:
+          if evn_id in evn_customer_id:
+               evn_branch = evn_branches_list[evn_id]              
+               return evn_branch 
+          
+async def get_evn_info(evn_customer_id: str):
     """Get EVN infomations based on Customer ID -> EVN Company, location, branches,..."""
 
     for index, each_area in enumerate(VIETNAM_EVN_AREA):
         for each_pattern in each_area.pattern:
             if each_pattern in evn_customer_id:
 
-                evn_branch = "Unknown"
-
-                file_path = os.path.join(os.path.dirname(__file__), "evn_branches.json")
-
-                with open(file_path) as f:
-                    evn_branches_list = json.load(f)
-
-                    for evn_id in evn_branches_list:
-                        if evn_id in evn_customer_id:
-                            evn_branch = evn_branches_list[evn_id]
+                loop = asyncio.get_running_loop()
+                evn_branch = await loop.run_in_executor(None, get_evn_branch, evn_customer_id)
 
                 return {
                     "status": CONF_SUCCESS,

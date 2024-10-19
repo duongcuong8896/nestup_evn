@@ -72,7 +72,7 @@ class EVNDevice:
         self._area_name = dataset.get(CONF_AREA)
         self._customer_id = dataset.get(CONF_CUSTOMER_ID)
         self._monthly_start = dataset.get(CONF_MONTHLY_START)
-
+        self._evn_branch = ""
         self._api = api
         self._data = {}
 
@@ -134,20 +134,22 @@ class EVNDevice:
             update_method=self._async_update,
             update_interval=DEFAULT_SCAN_INTERVAL,
         )
+        evn_area = await nestup_evn.get_evn_info(self._customer_id)
+        if (evn_area["status"] == CONF_SUCCESS) and (
+            evn_area["evn_branch"] != "Unknown"
+        ):
+            self._evn_branch = f"by {evn_area['evn_branch']}"
         await coordinator.async_config_entry_first_refresh()
         self._coordinator = coordinator
 
     @property
     def info(self) -> DeviceInfo:
         """Return device description for device registry."""
-        evn_area = nestup_evn.get_evn_info(self._customer_id)
+        
         hw_version = f"by {self._area_name['name']}"
-
-        if (evn_area["status"] == CONF_SUCCESS) and (
-            evn_area["evn_branch"] != "Unknown"
-        ):
-            hw_version = f"by {evn_area['evn_branch']}"
-
+        if self._evn_branch != "":
+            hw_version = self._evn_branch
+        
         return DeviceInfo(
             name=self._name,
             identifiers={(DOMAIN, self._customer_id)},

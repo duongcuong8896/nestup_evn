@@ -121,7 +121,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
             return await self.async_step_fulfill_data()
 
-        evn_info = nestup_evn.get_evn_info(self._user_data[CONF_CUSTOMER_ID])
+        evn_info = await nestup_evn.get_evn_info(self._user_data[CONF_CUSTOMER_ID])
 
         if evn_info.get("status") is CONF_SUCCESS:
             self._user_data[CONF_AREA] = evn_info["evn_area"]
